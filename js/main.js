@@ -183,24 +183,73 @@ if (startBtn) {
                 }
             });
         }
+
         // Init Audio Context (must be user gesture)
-        initAudio();
-        // Setup toggle listener
-        const soundBtn = document.getElementById('soundBtn');
-        if (soundBtn) {
-            soundBtn.addEventListener('click', toggleSound);
-        }
-        // Menu listener
-        const menuBtn = document.getElementById('menuBtn');
-        if (menuBtn) {
-            menuBtn.addEventListener('click', () => {
-                // For now, toggle nav or scroll to top
-                document.querySelector('.nav').classList.toggle('active');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        }
+        const audioCtxState = initAudio();
     });
 }
+
+// -- UI Initialization (Run immediately) --
+function initUI() {
+    // Setup toggle listener
+    const soundBtn = document.getElementById('soundBtn');
+    if (soundBtn) {
+        soundBtn.addEventListener('click', toggleSound);
+    }
+
+    // Menu listener
+    const menuBtn = document.getElementById('menuBtn');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const menuClose = document.getElementById('menuClose');
+    const menuLinks = document.querySelectorAll('.menu-link');
+
+    function toggleMenu(isOpen) {
+        if (!menuOverlay) return;
+
+        if (isOpen) {
+            menuOverlay.classList.add('active');
+            if (typeof gsap !== 'undefined') {
+                gsap.fromTo('.menu-link',
+                    { y: 50, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power2.out', delay: 0.2 }
+                );
+            }
+        } else {
+            menuOverlay.classList.remove('active');
+        }
+    }
+
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => toggleMenu(true));
+    }
+    if (menuClose) {
+        menuClose.addEventListener('click', () => toggleMenu(false));
+    }
+
+    // Handle link clicks
+    menuLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleMenu(false);
+            const targetId = link.getAttribute('href').substring(1);
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+
+    // Logo listener
+    const sceneLabel = document.getElementById('sceneLabel');
+    if (sceneLabel) {
+        sceneLabel.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+}
+
+// Run UI Init
+initUI();
 
 // -- Three.js Scene --
 function initThree() {
